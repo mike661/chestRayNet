@@ -23,8 +23,8 @@ def main():
     test_path = os.path.join(CSV_PATH, 'test.csv')
 
 
-    batch_size = 32
-    steps = 
+    batch_size = 32 #total samples / batch_size / 10)
+    steps =  #total samples / batch_size / 5)
 
 
 
@@ -49,6 +49,9 @@ def main():
             #auroc,
         ]
 
+    tf.keras.preprocessing.image.ImageDataGenerator(rescale=1./255.)
+    tf.keras.preprocessing.image.ImageDataGenerator()
+
     img_input = tf.keras.Input(shape=(224,224,3))
 
     optimizer = Adam(lr=0.001)
@@ -61,13 +64,13 @@ def main():
         input_shape=(224,224,3),
         weights='imagenet,
         pooling="avg")
-        
+
     x = base.output
     predictions = Dense(14, activation="sigmoid", name="predictions")(x)
 
     model = tf.keras.Model(inputs=img_input, outputs=predictions)
 
-    model.compile(loss="binary_crossentropy", optimizer=optimizer, metrics=[tf.keras.metrics.AUC(), 'accuracy'])
+    model.compile(loss="binary_crossentropy", optimizer=optimizer, metrics=[auc, 'accuracy'])
 
 if __name__ == "__main__":
     main()
