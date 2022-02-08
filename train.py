@@ -1,9 +1,6 @@
-#from callback import MultipleClassAUROC, MultiGPUModelCheckpoint
-#from configparser import ConfigParser
-#from generator import AugmentedImageSequence
 from sys import base_exec_prefix
 import tensorflow as tf
-from tensorflow.keras.callbacks import ModelCheckpoint, TensorBoard, ReduceLROnPlateau
+from tensorflow.keras.callbacks import ModelCheckpoint, TensorBoard, ReduceLROnPlateau, CSVLogger
 from tensorflow.keras.optimizers import Adam
 import os
 import pandas as pd
@@ -18,21 +15,21 @@ def main():
     root = './experiment/'
     experiment_path = os.path.join(root, '1')
 
-    output_weights_path = os.path.join(experiment_path, 'best_weights.h5')
+    output_weights_path = os.path.join(experiment_path, "best_weights-{epoch:003d}-{val_loss:.2f}.h5")
 
     CSV_PATH = './data_split/'
     train_path = os.path.join(CSV_PATH, 'train.csv')
     val_path = os.path.join(CSV_PATH, 'val.csv')
     test_path = os.path.join(CSV_PATH, 'test.csv')
 
-    batch_size = 32  # total samples / batch_size / 10)
-    steps =  # total samples / batch_size / 5)
+    batch_size = 16  # total samples / batch_size / 10)
+    steps = 0  # total samples / batch_size / 5)
 
     train_pd = pd.read_csv(train_path)
     val_pd = pd.read_csv(val_path)
 
-    if not os.path.isdir(experiment_dir):
-        os.makedirs(experiment_dir)
+    if not os.path.isdir(experiment_path):
+        os.makedirs(experiment_path)
 
     # TODO checkpoint
     checkpoint = ModelCheckpoint(
@@ -41,53 +38,60 @@ def main():
         save_weights_only=True,
         save_best_only=True,
         verbose=1,
+        mode="min",
     )
+
+    log_csv = CSVLogger(os.path.join(experiment_path, 'logs.csv'), separator=',')
 
     callbacks = [
         checkpoint,
-        #TensorBoard(log_dir=os.path.join(output_dir, "logs"), batch_size=batch_size),
         ReduceLROnPlateau(monitor='val_loss', factor=0.1, patience=1,
                           verbose=1, mode="min", min_lr=1e-8),
-        # auroc,
+        log_csv,
     ]
 
-    train_data_gen = tf.keras.preprocessing.image.ImageDataGenerator(horizontal_flip=True, preprocessin_function=tf.keras.applications.densenet.preprocess_input)
-    val_data_gen = tf.keras.preprocessing.image.ImageDataGenerator()
+    train_data_gen = tf.keras.preprocessing.image.ImageDataGenerator(
+        horizontal_flip=True, preprocessing_function=tf.keras.applications.densenet.preprocess_input)
+    val_data_gen = tf.keras.preprocessing.image.ImageDataGenerator(preprocessing_function=tf.keras.applications.densenet.preprocess_input)
 
-    label_names = ['Atelectasis','Cardiomegaly','Effusion','Infiltration','Mass','Nodule','Pneumonia','Pneumothorax','Consolidation','Edema','Emphysema','Fibrosis','Pleural_Thickening','Hernia']
+    label_names = ['Atelectasis', 'Cardiomegaly', 'Effusion', 'Infiltration', 'Mass', 'Nodule', 'Pneumonia',
+                   'Pneumothorax', 'Consolidation', 'Edema', 'Emphysema', 'Fibrosis', 'Pleural_Thickening', 'Hernia']
 
     train_generator = train_data_gen.flow_from_dataframe(
         dataframe=train_pd,
         directory="./images",
         x_col="Image Index",
         y_col=label_names,
-        batch_size=32,
+        batch_size=batch_size,
         shuffle=True,
         class_mode="raw",
         target_size=(224, 224),
-        )
+        interpolation='lanczos',
+    )
 
     val_generator = val_data_gen.flow_from_dataframe(
         dataframe=val_pd,
         directory="./images",
         x_col="Image Index",
         y_col=label_names,
-        batch_size=32,
-        shuffle=False,
+        batch_size=batch_size,
+        shuffle=True,
         class_mode="raw",
-        target_size=(224, 224))
+        target_size=(224, 224),
+        interpolation='lanczos',
+    )
 
     img_input = tf.keras.Input(shape=(224, 224, 3))
 
-    optimizer = Adam(lr=0.001)
+    optimizer = Adam(learning_rate=0.001)
 
     auc = tf.keras.metrics.AUC(multi_label=True)
 
-    base_exec_prefix = tf.keras.applications.DenseNet121(
+    base= tf.keras.applications.DenseNet121(
         include_top=False,
         input_tensor=img_input,
         input_shape=(224, 224, 3),
-        weights='imagenet,
+        weights='imagenet',
         pooling="avg")
 
     x = base.output
@@ -97,6 +101,15 @@ def main():
 
     model.compile(loss="binary_crossentropy",
                   optimizer=optimizer, metrics=[auc, 'accuracy'])
+
+    model.fit(train_generator,
+              steps_per_epoch=(train_generator.n //
+                               train_generator.batch_size)//10,
+              epochs=100,
+              validation_data=val_generator,
+              validation_steps=(val_generator.n // val_generator.batch_size)//5,
+              callbacks = callbacks,
+              )
 
 
 if __name__ == "__main__":
