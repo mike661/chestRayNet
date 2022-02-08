@@ -22,8 +22,7 @@ def main():
     val_path = os.path.join(CSV_PATH, 'val.csv')
     test_path = os.path.join(CSV_PATH, 'test.csv')
 
-    batch_size = 16  # total samples / batch_size / 10)
-    steps = 0  # total samples / batch_size / 5)
+    batch_size = 16  
 
     train_pd = pd.read_csv(train_path)
     val_pd = pd.read_csv(val_path)
