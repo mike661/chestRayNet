@@ -1,5 +1,5 @@
 numpy
 pandas
-PIL
+pillow
 scikit-learn
 tensorflow

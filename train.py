@@ -34,11 +34,11 @@ def main():
     # TODO checkpoint
     checkpoint = ModelCheckpoint(
         output_weights_path,
-        monitor="val_loss",
+        monitor="val_auc",
         save_weights_only=True,
         save_best_only=True,
         verbose=1,
-        mode="min",
+        mode="max",
     )
 
     log_csv = CSVLogger(os.path.join(experiment_path, 'logs.csv'), separator=',')
