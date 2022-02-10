@@ -19,7 +19,7 @@ class WeightedBinaryCrossentropy:
 
     def weighted_binary_crossentropy(self, y_true, y_hat):
         loss = float(0)
-        
+        # niepotrzebny komentarz
         for i, key in enumerate(self.positive_weights.keys()):
             first_term = self.positive_weights[key] * y_true[i] * K.log(y_hat[i] + K.epsilon())
             second_term =  self.negative_weights[key] * (1 - y_true[i]) * K.log(1 - y_hat[i] + K.epsilon())
