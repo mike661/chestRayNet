@@ -13,9 +13,17 @@ def main():
 
     # DIRS
     root = './experiment/'
-    experiment_path = os.path.join(root, '1')
+    experiment_number = 0
 
-    output_weights_path = os.path.join(experiment_path, "best_weights-{epoch:003d}-{val_loss:.2f}.h5")
+    for subdirs, dirs, files in os.walk(root):
+        if dirs:
+            dirs_array = np.array(dirs, dtype='uint8')
+            new_experiment_number = dirs_array.max()
+            experiment_number = new_experiment_number+1
+
+    experiment_path = os.path.join(root, str(experiment_number))
+
+    output_weights_path = os.path.join(experiment_path, "best_weights-{epoch:003d}-{val_auc:.2f}.h5")
 
     CSV_PATH = './data_split/'
     train_path = os.path.join(CSV_PATH, 'train.csv')
