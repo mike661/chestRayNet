@@ -6,7 +6,7 @@ import os
 import pandas as pd
 import numpy as np
 
-from .custom_loss import WeightedBinaryCrossentropy
+from custom_loss import WeightedBinaryCrossentropy
 
 from tensorflow.keras.layers import Dense
 
@@ -54,7 +54,7 @@ def main():
 
     callbacks = [
         checkpoint,
-        ReduceLROnPlateau(monitor='val_loss', factor=0.1, patience=1,
+        ReduceLROnPlateau(monitor='val_loss', factor=0.1, patience=3,
                           verbose=1, mode="min", min_lr=1e-8),
         log_csv,
     ]

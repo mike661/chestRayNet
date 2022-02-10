@@ -1,4 +1,5 @@
 from tensorflow.keras import backend as K
+import tensorflow as tf
 
 class WeightedBinaryCrossentropy:
     def __init__(self, class_labels, df):
@@ -10,7 +11,7 @@ class WeightedBinaryCrossentropy:
         self.N = df.shape[0]
         print("NUmber of samples passed to WeightedBinaryCrossentropy: {}".format(self.N))
 
-        calculate_weights()
+        self.calculate_weights()
     
 
     def calculate_weights(self):
@@ -23,6 +24,8 @@ class WeightedBinaryCrossentropy:
         loss = float(0)
         # niepotrzebny komentarz
         for i, key in enumerate(self.positive_weights.keys()):
+            y_hat = tf.convert_to_tensor(y_hat)
+            y_true = tf.cast(y_true, y_hat.dtype)
             first_term = self.positive_weights[key] * y_true[i] * K.log(y_hat[i] + K.epsilon())
             second_term =  self.negative_weights[key] * (1 - y_true[i]) * K.log(1 - y_hat[i] + K.epsilon())
             loss -= (first_term + second_term)
