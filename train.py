@@ -6,6 +6,8 @@ import os
 import pandas as pd
 import numpy as np
 
+from .custom_loss import WeightedBinaryCrossentropy
+
 from tensorflow.keras.layers import Dense
 
 
@@ -106,7 +108,10 @@ def main():
 
     model = tf.keras.Model(inputs=img_input, outputs=predictions)
 
-    model.compile(loss="binary_crossentropy",
+
+    loss_func = WeightedBinaryCrossentropy(label_names, train_pd).weighted_binary_crossentropy
+
+    model.compile(loss=loss_func,
                   optimizer=optimizer, metrics=[auc, 'accuracy'])
 
     model.fit(train_generator,

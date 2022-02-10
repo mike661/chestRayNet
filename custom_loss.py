@@ -9,6 +9,8 @@ class WeightedBinaryCrossentropy:
         self.negative_weights = {}
         self.N = df.shape[0]
         print("NUmber of samples passed to WeightedBinaryCrossentropy: {}".format(self.N))
+
+        calculate_weights()
     
 
     def calculate_weights(self):
