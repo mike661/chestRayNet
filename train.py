@@ -89,6 +89,7 @@ def main():
         target_size=(224, 224),
         interpolation='lanczos',
     )
+    
 
     img_input = tf.keras.Input(shape=(224, 224, 3))
 

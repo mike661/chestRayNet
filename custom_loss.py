@@ -1,5 +1,6 @@
 from tensorflow.keras import backend as K
 import tensorflow as tf
+import numpy as np
 
 class WeightedBinaryCrossentropy:
     def __init__(self, class_labels, df):
@@ -15,10 +16,14 @@ class WeightedBinaryCrossentropy:
     
 
     def calculate_weights(self):
-        for label in sorted(self.class_labels):
+        for label in self.class_labels:
             self.positive_weights[label] = sum(self.df[label] == 0) / self.N 
             self.negative_weights[label] = sum(self.df[label] == 1) / self.N
-
+        print(self.class_labels)
+        print(self.positive_weights.keys())
+        print(self.negative_weights.keys())
+        print([k for k in self.positive_weights.keys()])
+        print(np.array_equal([k for k in self.positive_weights.keys()], self.class_labels))
 
     def weighted_binary_crossentropy(self, y_true, y_hat):
         loss = float(0)
