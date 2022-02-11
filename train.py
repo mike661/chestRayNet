@@ -115,12 +115,15 @@ def main():
     model.compile(loss=loss_func,
                   optimizer=optimizer, metrics=[auc, 'accuracy'])
 
+
+    print(train_generator.labels)
+
     model.fit(train_generator,
               steps_per_epoch=(train_generator.n //
-                               train_generator.batch_size)//10,
+                               train_generator.batch_size)//5,
               epochs=100,
               validation_data=val_generator,
-              validation_steps=(val_generator.n // val_generator.batch_size)//5,
+              validation_steps=(val_generator.n // val_generator.batch_size),
               callbacks = callbacks,
               )
 
