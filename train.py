@@ -32,7 +32,7 @@ def main():
     val_path = os.path.join(CSV_PATH, 'val.csv')
     test_path = os.path.join(CSV_PATH, 'test.csv')
 
-    batch_size = 16  
+    batch_size = 32  
 
     train_pd = pd.read_csv(train_path)
     val_pd = pd.read_csv(val_path)
@@ -112,11 +112,9 @@ def main():
 
     loss_func = WeightedBinaryCrossentropy(label_names, train_pd).weighted_binary_crossentropy
 
-    model.compile(loss=loss_func,
+    model.compile(loss='binary_crossentropy',
                   optimizer=optimizer, metrics=[auc, 'accuracy'])
 
-
-    print(train_generator.labels)
 
     model.fit(train_generator,
               steps_per_epoch=(train_generator.n //
