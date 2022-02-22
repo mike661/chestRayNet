@@ -6,8 +6,8 @@ from  tensorflow.keras.losses import Loss
 
 class WeightedBinaryCrossentropy(Loss):
 
-    def __init__(self, class_labels, df):
-        super().__init__()
+    def __init__(self, class_labels, df, reduction='auto'):
+        super().__init__(reduction=reduction)
         self.class_labels = class_labels
         self.df = df
         self.class_weights = {}

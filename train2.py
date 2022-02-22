@@ -5,41 +5,42 @@ from tensorflow.keras.optimizers import Adam
 import os
 import pandas as pd
 import numpy as np
-
 #from custom_loss import WeightedBinaryCrossentropy
-
 from tensorflow.keras.layers import Dense
 from custom_loss2 import WeightedBinaryCrossentropy
 
-def main():
 
+
+
+def get_output_layer(model, layer_name):
+    # get the symbolic outputs of each "key" layer (we gave them unique names).
+    layer_dict = dict([(layer.name, layer) for layer in model.layers])
+    layer = layer_dict[layer_name]
+    return layer
+
+
+
+
+def main():
     # DIRS
     root = './experiment/'
     experiment_number = 0
-
     for subdirs, dirs, files in os.walk(root):
         if dirs:
             dirs_array = np.array(dirs, dtype='uint8')
             new_experiment_number = dirs_array.max()
             experiment_number = new_experiment_number+1
-
     experiment_path = os.path.join(root, str(experiment_number))
-
     output_weights_path = os.path.join(experiment_path, "best_weights-{epoch:003d}-{val_auc:.2f}.h5")
-
     CSV_PATH = './data_split/'
     train_path = os.path.join(CSV_PATH, 'train.csv')
     val_path = os.path.join(CSV_PATH, 'val.csv')
     test_path = os.path.join(CSV_PATH, 'test.csv')
-
     batch_size = 32  
-
     train_pd = pd.read_csv(train_path)
     val_pd = pd.read_csv(val_path)
-
     if not os.path.isdir(experiment_path):
         os.makedirs(experiment_path)
-
     # TODO checkpoint
     checkpoint = ModelCheckpoint(
         output_weights_path,
@@ -103,28 +104,29 @@ def main():
         input_shape=(224, 224, 3),
         weights='imagenet',
         pooling="avg")
+    
+    before_avg_pool = get_output_layer(base, 'pool4_relu')
 
-    x = base.output
+
+    x = before_avg_pool.output
+    x = tf.keras.layers.GlobalAveragePooling2D()(x)
     predictions = Dense(14, activation="sigmoid", name="predictions")(x)
 
     model = tf.keras.Model(inputs=img_input, outputs=predictions)
 
-
     loss_func = WeightedBinaryCrossentropy(label_names, train_pd, reduction='sum')
-
     model.compile(loss=loss_func,
                   optimizer=optimizer, metrics=[auc, 'accuracy'])
 
+    print(model.summary())
 
     model.fit(train_generator,
               steps_per_epoch=(train_generator.n //
                                train_generator.batch_size)//5,
-              epochs=100,
+              epochs=70,
               validation_data=val_generator,
               validation_steps=(val_generator.n // val_generator.batch_size),
               callbacks = callbacks,
               )
-
-
 if __name__ == "__main__":
     main()
